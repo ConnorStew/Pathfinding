@@ -1,3 +1,5 @@
+package ui;
+
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
@@ -8,6 +10,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
+import pathfinding.VisibilityGraph;
 
 import java.awt.*;
 import java.util.HashMap;
@@ -19,13 +22,20 @@ public class PathfindingWindow implements ApplicationListener {
     BitmapFont font;
 
     ShapeRenderer sr;
+
+    private Tile start, goal;
+
+    private VisibilityGraph vg;
+
     private SpriteBatch sb;
 
     HashMap<Point, Tile> tiles = new HashMap<Point, Tile>();
 
-    LogicThread logicThread;
-
     public static final int tileAmount = 32;
+
+    public static float tileWidth, tileHeight;
+
+
 
     @Override
     public void create() {
@@ -33,7 +43,7 @@ public class PathfindingWindow implements ApplicationListener {
         sr = new ShapeRenderer();
         sr.setAutoShapeType(true);
         sb = new SpriteBatch();
-        //sb.setProjectionMatrix(cam.combined);
+        vg = new VisibilityGraph();
 
         FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Gdx.files.internal("TheLightFont.ttf"));
         FreeTypeFontGenerator.FreeTypeFontParameter parameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
@@ -46,12 +56,11 @@ public class PathfindingWindow implements ApplicationListener {
         generator.dispose();
 
         font.setUseIntegerPositions(false);
-        //font.getData().setScale(0.75f);
 
         final float windowWidth = Gdx.graphics.getWidth();
         final float windowHeight = Gdx.graphics.getHeight();
-        final float tileWidth = (windowWidth / tileAmount);
-        final float tileHeight = (windowHeight / tileAmount);
+        tileWidth = (windowWidth / tileAmount);
+        tileHeight = (windowHeight / tileAmount);
 
         for (int x = 0; x < tileAmount; x++)
             for (int y = 0; y < tileAmount; y++)
@@ -68,8 +77,10 @@ public class PathfindingWindow implements ApplicationListener {
         fillRect(13,12,7,2);
         tiles.get(new Point(30,14)).setFilled(true);
 
-        logicThread = new LogicThread(tiles);
-        logicThread.start();
+
+        for (int x = 0; x < PathfindingWindow.tileAmount; x++)
+            for (int y = 0; y < PathfindingWindow.tileAmount; y++)
+                vg.addNode(tiles.get(new Point(x,y)).getNode());
     }
 
     private void fillRect(int startX, int startY, int width, int height) {
@@ -83,23 +94,43 @@ public class PathfindingWindow implements ApplicationListener {
         if (Gdx.input.isButtonPressed(Input.Buttons.LEFT)) {
             Vector2 mp = new Vector2(Gdx.input.getX(), Gdx.input.getY());
 
-            for (int x = 0; x < tileAmount; x++)
-                for (int y = 0; y < tileAmount; y++)
-                    if (tiles.get(new Point(x,y)).contains(mp))
-                        click(tiles.get(new Point(x, tileAmount - y - 1))); //invert y axis
+            for (int x = 0; x < tileAmount; x++) {
+                for (int y = 0; y < tileAmount; y++) {
+                    if (tiles.get(new Point(x,y)).contains(mp)) {
+                        Tile clickedTile = tiles.get(new Point(x, tileAmount - y - 1)); //invert y axis
+
+                        vg.initialise(clickedTile.getNode());
+
+                        if (vg.isReady())
+                            new Thread(){
+                                @Override
+                                public void run() {
+                                    vg.aStar();
+                                }
+                            }.start();
+
+                        try {
+                            Thread.sleep(80);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
         }
 
-        logicThread.renderDebug(sb, sr, font);
-    }
+        sr.begin();
 
-    private void click(Tile clickedTile) {
-        logicThread.click(clickedTile);
-
-        try {
-            Thread.sleep(500);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        for (int x = 0; x < PathfindingWindow.tileAmount; x++) {
+            for (int y = 0; y < PathfindingWindow.tileAmount; y++) {
+                tiles.get(new Point(x, y)).render(sr);
+            }
         }
+
+
+        sr.end();
+
+        vg.renderDebug(sb, sr, font);
     }
 
 

@@ -1,6 +1,9 @@
+package ui;
+
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
+import pathfinding.Node;
 
 import java.awt.*;
 
@@ -54,7 +57,7 @@ public class Tile {
     public void setFilled(boolean filled) {
         this.filled = filled;
         if (!filled)
-            node = new Node(new Point(gridX, gridY));
+            node = new Node(new Point(gridX, gridY), worldX, worldY);
         else
             node = null;
     }
