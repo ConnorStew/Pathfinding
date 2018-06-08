@@ -11,6 +11,7 @@ public class Driver {
         config.width = 900;
         config.height = 700;
         config.resizable = false;
-        new LwjglApplication(new PathfindingWindow(), config);
+        new LwjglApplication(new GraphPathfindingWindow(), config);
+
     }
 }

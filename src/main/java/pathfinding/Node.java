@@ -104,4 +104,8 @@ public class Node {
     public Node getParent() {
         return parent;
     }
+
+    public Point getWorldPoint() {
+        return new Point((int)worldX, (int)worldY);
+    }
 }

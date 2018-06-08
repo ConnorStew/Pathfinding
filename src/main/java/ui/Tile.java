@@ -11,9 +11,6 @@ public class Tile {
 
     private float width, height, worldX, worldY;
     private int gridX, gridY;
-
-    private Node node;
-
     private boolean filled;
 
     public Tile(int gridX, int gridY, float worldX, float worldY, float tileWidth, float tileHeight) {
@@ -56,10 +53,6 @@ public class Tile {
 
     public void setFilled(boolean filled) {
         this.filled = filled;
-        if (!filled)
-            node = new Node(new Point(gridX, gridY), worldX, worldY);
-        else
-            node = null;
     }
 
     public boolean contains(Vector2 mp) {
@@ -90,11 +83,21 @@ public class Tile {
         return height;
     }
 
-    public Node getNode() {
-        return node;
+    public Point getGridPoint() {
+        return new Point(gridX, gridY);
     }
 
-    public boolean hasNode() {
-        return node != null;
+    public float getCenterX() {
+        return worldX + width / 2;
     }
+
+    public float getCenterY() {
+        return worldY + height / 2;
+    }
+
+    @Override
+    public String toString() {
+        return "(" + getGridPoint().getX() + ", " + getGridPoint().getY() + ")";
+    }
+
 }

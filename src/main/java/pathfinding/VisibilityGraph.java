@@ -5,10 +5,8 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import ui.PathfindingWindow;
-import ui.Tile;
 
 import java.awt.*;
-import java.text.DecimalFormat;
 import java.util.LinkedList;
 
 public class VisibilityGraph {
@@ -38,24 +36,32 @@ public class VisibilityGraph {
         }
     }
 
-
     public void addNode(Node toAdd) {
         if (toAdd != null)
             nodes.add(toAdd);
     }
 
-    public void aStar() {
+    public void setStart(Node start) {
+        this.start = start;
+    }
+
+    public void setGoal(Node goal) {
+        this.goal = goal;
+    }
+
+    public LinkedList<Node> aStar(boolean pause) {
         openList = new LinkedList<Node>();
-        openList.push(start);
         closedList = new LinkedList<Node>();
+        path.clear();
+        openList.push(start);
 
         while (!openList.isEmpty()) {
             LinkedList<Node> lowestScores = lowestScore(openList);
 
             for (Node current : lowestScores) {
                 if (current.equals(goal)) {
-                    backtrack(current.getParent());
-                    return;
+                    backtrack(current.getParent(), pause);
+                    return path;
                 }
 
                 openList.remove(current);
@@ -76,26 +82,32 @@ public class VisibilityGraph {
                     neighbor.updateScore(goal);
                 }
 
-                try {
-                    Thread.sleep(50);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+                if (pause) {
+                    try {
+                        Thread.sleep(50);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
+
             }
         }
 
+        return null;
     }
 
-    private void backtrack(Node current) {
+    private void backtrack(Node current, boolean pause) {
         path.add(current);
         while (current.getParent() != null) {
             current = current.getParent();
             path.add(current);
 
-            try {
-                Thread.sleep(50);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            if (pause) {
+                try {
+                    Thread.sleep(50);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
@@ -138,7 +150,7 @@ public class VisibilityGraph {
         return walkable;
     }
 
-    private Node getNodeAt(Point point) {
+    public Node getNodeAt(Point point) {
         for (Node node : nodes)
             if (node.getLocation().equals(point))
                 return node;
@@ -214,5 +226,13 @@ public class VisibilityGraph {
 
     public boolean isReady() {
         return (start != null && goal != null);
+    }
+
+    public Point toWorldPos(Point gridPos) {
+        Node node = getNodeAt(gridPos);
+        if (node != null)
+            return node.getWorldPoint();
+        else
+            return null;
     }
 }
