@@ -8,6 +8,7 @@ import java.util.List;
  */
 public class Vertex {
 
+    private final String debugName;
     /** The vertex's x coordinate. */
     private float x;
 
@@ -26,14 +27,18 @@ public class Vertex {
     /** The vertex's distance score based on {@link #g} and {@link #h}. */
     private float f;
 
+    private Vertex parent;
+
     /**
      * Creates a vertex at the desired position.
      * @param x the vertex's x coordinate
      * @param y the vertex's y coordinate
      */
-    public Vertex(float x, float y) {
+    public Vertex(float x, float y, String debugName) {
+        this.debugName = debugName;
         this.x = x;
         this.y = y;
+        f = Float.MAX_VALUE;
         neighbors = new ArrayList<Vertex>();
     }
 
@@ -55,5 +60,38 @@ public class Vertex {
 
     public float getScore() {
         return f;
+    }
+
+    public float getG() {
+        return g;
+    }
+
+    public void setG(float g) {
+        this.g = g;
+    }
+
+    public void setH(float h) {
+        this.h = h;
+    }
+
+    public float getH() {
+        return h;
+    }
+
+    public void setScore(float score) {
+        this.f = score;
+    }
+
+    @Override
+    public String toString() {
+        return debugName;
+    }
+
+    public Vertex getParent() {
+        return parent;
+    }
+
+    public void setParent(Vertex parent) {
+        this.parent = parent;
     }
 }

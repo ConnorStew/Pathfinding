@@ -4,6 +4,7 @@ import java.util.*;
 
 /**
  * Look here https://github.com/RavenTheorist/A-Star-Project/blob/master/src/a/star/project/GraphImplementation/Graph.java.
+ * https://www.raywenderlich.com/4946/introduction-to-a-pathfinding
  */
 public class Graph {
 
@@ -42,10 +43,9 @@ public class Graph {
      * Adds an edge between two vertices.
      * @param firstVertex the first vertex
      * @param secondVertex the second vertex
-     * @param weight the weight of the node
      */
-    public void addEdge(Vertex firstVertex, Vertex secondVertex, float weight) {
-        edges.add(new Edge(firstVertex, secondVertex, weight));
+    public void addEdge(Vertex firstVertex, Vertex secondVertex) {
+        edges.add(new Edge(firstVertex, secondVertex));
     }
 
     /**
@@ -54,11 +54,32 @@ public class Graph {
      * @param targetVertex the target vertex
      */
     public void aStar(Vertex startVertex, Vertex targetVertex) {
+        openList.clear();
+        closedList.clear();
+        path.clear();
+
+        final long wait = 50;
         openList.add(startVertex);
 
         while (!openList.isEmpty()) {
+            if (openList.contains(targetVertex)) {
+                path.add(targetVertex);
+
+                Vertex current = targetVertex;
+                while (current.getParent() != null) {
+                    path.add(current.getParent());
+                    current = current.getParent();
+                    try {
+                        Thread.sleep(wait);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                return;
+            }
+
             //get lowest vertices
-            ArrayList<Vertex> lowestVertices = new ArrayList<Vertex>();
+            LinkedList<Vertex> lowestVertices = new LinkedList<Vertex>();
             float lowestScore = Float.MAX_VALUE;
 
             for (Vertex vertex : openList)
@@ -67,24 +88,65 @@ public class Graph {
 
             for (Vertex vertex : openList)
                 if (vertex.getScore() == lowestScore)
-                    lowestVertices.add(vertex);
+                    lowestVertices.addFirst(vertex);
 
             for (Vertex vertex : lowestVertices) {
                 closedList.add(vertex);
                 openList.remove(vertex);
 
                 //add neighbours that aren't in the list
-                for (Vertex neighbour : vertex.getNeighbours())
-                    if (!openList.contains(neighbour))
-                        openList.add(neighbour);
+                for (Vertex neighbour : vertex.getNeighbours()) {
+                    if (!openList.contains(neighbour) && !closedList.contains(neighbour)) {
+                        //get edge between this vertex and it neighbour
+                        Edge edge = getEdgeBetween(vertex, neighbour);
+
+                        if (closedList.contains(neighbour))
+                            continue;
+
+                        float tentativeG = vertex.getG() + Math.abs(vertex.getX() - neighbour.getX()) + Math.abs(vertex.getY() - neighbour.getY());;
+                        float tentativeH = Math.abs(targetVertex.getX() - neighbour.getX()) + Math.abs(targetVertex.getY() - neighbour.getY());
+                        float tentativeScore = (tentativeG + tentativeH) * edge.getWeight();
+
+                        if (!openList.contains(neighbour)) {
+                            openList.add(neighbour);
+                            setScore(neighbour, vertex, tentativeScore, tentativeG, tentativeH);
+                        }
+
+                        //update the score of the neighbouring vertex
+                        if (tentativeScore < neighbour.getScore())
+                            setScore(neighbour, vertex, tentativeScore, tentativeG, tentativeH);
+                    }
+                }
+
             }
 
             try {
-                Thread.sleep(150);
+                Thread.sleep(wait);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
+    }
+
+    private void setScore(Vertex vertex, Vertex parent, float score, float g, float h) {
+        vertex.setScore(score);
+        vertex.setG(g);
+        vertex.setH(h);
+        vertex.setParent(parent);
+    }
+
+    /**
+     * Gets all edges between the vertices provided (Going from startVertex to endVertex, not the other way around.)
+     * @param startVertex the starting vertex
+     * @param endVertex the end vertex
+     * @return edge between the vertices
+     */
+    public Edge getEdgeBetween(Vertex startVertex, Vertex endVertex) {
+        for (Edge edge : edges)
+            if (edge.getFirstVertex().equals(startVertex) && edge.getSecondVertex().equals(endVertex))
+                return edge;
+
+        return null;
     }
 
     @Override

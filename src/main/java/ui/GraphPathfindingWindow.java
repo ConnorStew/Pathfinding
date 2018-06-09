@@ -15,6 +15,8 @@ import data.Graph;
 import data.Vertex;
 
 import java.awt.*;
+import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -44,12 +46,12 @@ public class GraphPathfindingWindow implements ApplicationListener {
         start = null;
         goal = null;
 
-        FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Gdx.files.internal("TheLightFont.ttf"));
+        FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Gdx.files.internal("cv.ttf"));
         FreeTypeFontGenerator.FreeTypeFontParameter parameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
         parameter.size = 12;
 
         font = generator.generateFont(parameter);
-        font.setColor(Color.BLUE);
+        font.setColor(Color.FOREST);
 
         parameter.characters = FreeTypeFontGenerator.DEFAULT_CHARS;
         generator.dispose();
@@ -77,11 +79,12 @@ public class GraphPathfindingWindow implements ApplicationListener {
         modifyTiles(true,18,20,10,8);
 
         modifyTiles(false,5,4,8,4);
+        modifyTiles(false,2,25,14,3);
 
         //add vertices to graph
         for (Tile tile : tiles)
             if (!tile.isFilled())
-                graph.addVertex(new Vertex(tile.getCenterX(), tile.getCenterY()));
+                graph.addVertex(new Vertex(tile.getCenterX(), tile.getCenterY(), tile.getGridX() + ", " + tile.getGridY()));
 
         //add edges to graph
         for (Tile tile : tiles)
@@ -92,6 +95,10 @@ public class GraphPathfindingWindow implements ApplicationListener {
         for (Tile tile : tiles)
             if (!tile.isFilled())
                 addNeighbours(tile);
+
+
+        //graph.getEdgeBetween(getTilesVertex(getTileAt(new Point(1,1))), getTilesVertex(getTileAt(new Point(2,1)))).setWeight(2);
+        //graph.getEdgeBetween(getTilesVertex(getTileAt(new Point(2,1))), getTilesVertex(getTileAt(new Point(3,1)))).setWeight(2);
     }
 
     private void addNeighbours(Tile tile) {
@@ -128,7 +135,7 @@ public class GraphPathfindingWindow implements ApplicationListener {
 
     private void addEdge(Tile start, Tile toAdd) {
         if (toAdd != null && !toAdd.isFilled())
-            graph.addEdge(graph.getVertexAt(start.getCenterX(), start.getCenterY()), graph.getVertexAt(toAdd.getCenterX(), toAdd.getCenterY()), 0);
+            graph.addEdge(graph.getVertexAt(start.getCenterX(), start.getCenterY()), graph.getVertexAt(toAdd.getCenterX(), toAdd.getCenterY()));
     }
 
     private void modifyTiles(boolean fill, int startX, int startY, int width, int height) {
@@ -196,9 +203,27 @@ public class GraphPathfindingWindow implements ApplicationListener {
             sr.rect(tile.getWorldX(), tile.getWorldY(), tileWidth, tileHeight);
         }
 
-        sr.setColor(Color.BLACK);
+
         sr.set(ShapeRenderer.ShapeType.Filled);
+
+
+        ArrayList<Edge> weightedEdges = new ArrayList<Edge>();
         for (Edge edge : graph.getEdges()) {
+            sr.setColor(Color.BLACK);
+
+            if (graph.getPath().contains(edge.getFirstVertex()) && graph.getPath().contains(edge.getSecondVertex()))
+                sr.setColor(Color.MAGENTA);
+
+            if (edge.getWeight() == 2)
+                weightedEdges.add(edge);
+
+            Vertex v1 = edge.getFirstVertex();
+            Vertex v2 = edge.getSecondVertex();
+            sr.rectLine(v1.getX(), v1.getY(), v2.getX(), v2.getY(), 5);
+        }
+
+        sr.setColor(Color.RED);
+        for (Edge edge : weightedEdges) {
             Vertex v1 = edge.getFirstVertex();
             Vertex v2 = edge.getSecondVertex();
             sr.rectLine(v1.getX(), v1.getY(), v2.getX(), v2.getY(), 5);
@@ -218,7 +243,13 @@ public class GraphPathfindingWindow implements ApplicationListener {
                 vertexColour = Color.RED;
 
             if (path.contains(vertex))
-                vertexColour = Color.MAGENTA;
+                vertexColour = Color.VIOLET;
+
+            if (goal != null && vertex.equals(getTilesVertex(goal)))
+                vertexColour = Color.PURPLE;
+
+            if (start != null && vertex.equals(getTilesVertex(start)))
+                vertexColour = Color.YELLOW;
 
             sr.setColor(vertexColour);
             sr.circle(vertex.getX(), vertex.getY(), 5);
@@ -228,6 +259,25 @@ public class GraphPathfindingWindow implements ApplicationListener {
         //drawNeighboursAt(new Point(4,17));
 
         sr.end();
+
+        /*
+
+        DecimalFormat df = new DecimalFormat("###");
+
+        sb.begin();
+
+        for (Vertex vertex : graph.getVertices())
+            if (vertex.getScore() != Float.MAX_VALUE)
+                font.draw(sb, df.format(vertex.getScore()), vertex.getX(), vertex.getY());
+
+        sb.end();
+
+        */
+
+    }
+
+    private Vertex getTilesVertex(Tile tile) {
+        return graph.getVertexAt(tile.getCenterX(), tile.getCenterY());
     }
 
     /**

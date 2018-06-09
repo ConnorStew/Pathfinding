@@ -14,10 +14,12 @@ public class Edge {
     /** How difficult it is to cross this edge. */
     private float weight;
 
-    Edge(Vertex firstVertex, Vertex secondVertex, float weight) {
+    private final float DEFUALT_WEIGHT = 1;
+
+    Edge(Vertex firstVertex, Vertex secondVertex) {
         this.firstVertex = firstVertex;
         this.secondVertex = secondVertex;
-        this.weight = weight;
+        weight = DEFUALT_WEIGHT;
     }
 
     public Vertex getFirstVertex() {
@@ -28,4 +30,11 @@ public class Edge {
         return secondVertex;
     }
 
+    public float getWeight() {
+        return weight;
+    }
+
+    public void setWeight(int weight) {
+        this.weight = weight;
+    }
 }
