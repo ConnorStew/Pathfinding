@@ -6,11 +6,11 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="Raycast" />
+        <module name="Pathfinding" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="Raycast" target="6" />
+      <module name="Pathfinding" target="6" />
     </bytecodeTargetLevel>
   </component>
 </project>
